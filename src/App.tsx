@@ -6,7 +6,7 @@ import Contact from "./components/Contact";
 
 function App() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
+    <div className="min-h-screen">
       <Header />
       <main>
         <About />

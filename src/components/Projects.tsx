@@ -15,7 +15,7 @@ export default function Projects() {
     () => [
       {
         id: "p1",
-        title: "Motion UI Kit",
+        title: "Site for BEST Eka UrFU",
         description:
           "Reusable components with Framer Motion and Tailwind for delightful interactions.",
         tags: ["React", "Framer Motion", "Tailwind"],
@@ -23,7 +23,7 @@ export default function Projects() {
       },
       {
         id: "p2",
-        title: "Content Platform",
+        title: "Online whiteboard for BEST Eka UrFU",
         description:
           "MDX-driven blog platform with fast DX, strong typing, and clean theming.",
         tags: ["TypeScript", "MDX", "Vite"],
@@ -31,7 +31,7 @@ export default function Projects() {
       },
       {
         id: "p3",
-        title: "Design System",
+        title: "Site for Anastasia Karmatskaya",
         description:
           "Accessible component library with tokens, theming, and usage docs.",
         tags: ["Accessibility", "Design Tokens", "Docs"],
@@ -117,7 +117,7 @@ export default function Projects() {
                     {p.tags.map((t) => (
                       <span
                         key={t}
-                        className="text-[11px] font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full"
+                        className="text-[11px] font-medium text-[#2b2e32] bg-[#d9e5f8] px-2.5 py-1 rounded-full"
                       >
                         {t}
                       </span>
@@ -140,21 +140,30 @@ export default function Projects() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.18 }}
+                // Клик по затемнению (на всякий случай оставим, хотя он перекрыт)
                 onClick={() => setActiveId(null)}
               />
-              {/* Dialog */}
+
+              {/* Wrapper: Убрал p-4, чтобы на мобилке было во всю ширину */}
               <motion.div
                 id={`project-${active.id}-dialog`}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={`project-${active.id}-title`}
+                // Вернул классы как были в оригинале (без padding) + добавил onClick
                 className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 20 }}
                 transition={{ type: "tween", duration: 0.22 }}
+                onClick={() => setActiveId(null)} // 1. Закрываем при клике на пустое место
               >
-                <div className="w-full md:max-w-2xl md:mx-auto bg-white rounded-t-3xl md:rounded-2xl shadow-lg overflow-hidden border border-slate-200">
+                {/* Card: Добавил stopPropagation */}
+                <div
+                  // Классы оригинала: w-full (на мобилке от края до края), rounded-t-3xl (скругление только сверху)
+                  className="w-full md:max-w-2xl md:mx-auto bg-white rounded-t-3xl md:rounded-2xl shadow-lg overflow-hidden border border-slate-200"
+                  onClick={(e) => e.stopPropagation()} // 2. Блокируем закрытие при клике на саму карточку
+                >
                   {active.image ? (
                     <div className="aspect-video bg-slate-100">
                       <img
@@ -181,7 +190,7 @@ export default function Projects() {
                           {active.tags.map((t) => (
                             <span
                               key={t}
-                              className="text-[11px] font-medium text-slate-700 bg-slate-100 px-2.5 py-1 rounded-full"
+                              className="text-[11px] font-medium text-[#2b2e32] bg-[#d9e5f8] px-2.5 py-1 rounded-full"
                             >
                               {t}
                             </span>
