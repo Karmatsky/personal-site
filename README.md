@@ -1,5 +1,3 @@
-### Project structure
+### My personal site
 
-/About
-/Portfolio
-/Contact
+Work in progress...
