@@ -5,7 +5,10 @@ export default function About() {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <section id="about" className="py-16 md:py-24">
+    <section
+      id="about"
+      className="min-h-screen flex items-center py-16 md:py-24"
+    >
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center">
           <motion.div
@@ -35,13 +38,13 @@ export default function About() {
             <div className="flex flex-col sm:flex-row gap-3">
               <a
                 href="#projects"
-                className="inline-flex items-center justify-center rounded-md bg-[#ffdd2d] text-black px-4 py-2 text-xs font-medium shadow-sm hover:bg-[#f2d22b] transition-colors"
+                className="inline-flex items-center justify-center rounded-md bg-[#ffdd2d] text-black px-6 py-3 text-xs font-normal shadow-sm hover:bg-[#f2d22b] transition-colors"
               >
                 View Projects
               </a>
               <a
                 href="#contact"
-                className="inline-flex items-center justify-center rounded-md border border-slate-300 text-[#126df7] px-4 py-2 text-xs font-medium hover:border-slate-400 transition-colors"
+                className="inline-flex items-center justify-center rounded-md border border-slate-300 text-[#126df7] px-6 py-3 text-xs font-normal hover:border-slate-400 transition-colors"
               >
                 Contact Me
               </a>
@@ -55,7 +58,6 @@ export default function About() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
             viewport={{ once: true }}
           >
-            {/* ИЗМЕНЕНИЯ ЗДЕСЬ: mx-auto для мобилок, md:ml-auto md:mr-0 для десктопа */}
             <div className="relative w-full max-w-sm mx-auto md:ml-auto md:mr-0">
               <div
                 aria-hidden
