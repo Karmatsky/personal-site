@@ -16,28 +16,25 @@ export default function Projects() {
       {
         id: "p1",
         title: "Site for BEST Eka UrFU",
-        description:
-          "Reusable components with Framer Motion and Tailwind for delightful interactions.",
+        description: "Website for a european volunteer organisation",
         tags: ["HTML", "TailwindCSS", "JavaScript"],
-        image: "/urfubestru.png",
+        image: "/urfubestru.webp",
         link: "https://urfubest.ru",
       },
       {
         id: "p2",
         title: "Online whiteboard for BEST Eka UrFU",
-        description:
-          "MDX-driven blog platform with fast DX, strong typing, and clean theming.",
+        description: "Real-time interactive online whiteboard",
         tags: ["Next.js", "TypeScript", "Convex", "Clerk"],
-        image: "/whiteboard.png",
+        image: "/whiteboard.webp",
         link: "https://eka-urfu-board.vercel.app/",
       },
       {
         id: "p3",
         title: "Site for Anastasia Karmatskaya",
-        description:
-          "Accessible component library with tokens, theming, and usage docs.",
+        description: "Website for designer Anastasia Karmatskaya",
         tags: ["Low-code", "Tilda"],
-        image: "/karmatskayaru.png",
+        image: "/karmatskayaru.webp",
         link: "https://karmatskaya.ru/",
       },
     ],
