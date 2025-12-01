@@ -32,7 +32,8 @@ export default function Projects() {
       {
         id: "p3",
         title: "Site for Anastasia Karmatskaya",
-        description: "Website for designer Anastasia Karmatskaya",
+        description:
+          "Website transformation for a designer according to a new request",
         tags: ["Low-code", "Tilda"],
         image: "/karmatskayaru.webp",
         link: "https://karmatskaya.ru/",
@@ -58,7 +59,7 @@ export default function Projects() {
   return (
     <section
       id="projects"
-      className="min-h-screen flex flex-col justify-center py-16 md:py-24"
+      className="min-h-screen flex flex-col justify-center py-16 md:py-24 scroll-mt-10"
     >
       <div className="mx-auto max-w-6xl px-6">
         <motion.div

@@ -7,7 +7,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="min-h-screen flex items-center py-16 md:py-24"
+      className="min-h-screen flex items-center pt-28 pb-16 md:py-24 scroll-mt-28"
     >
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-12 items-center">

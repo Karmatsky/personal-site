@@ -148,7 +148,7 @@ export default function Contact() {
   return (
     <section
       id="contact"
-      className="min-h-screen flex items-center py-16 md:py-24"
+      className="min-h-screen flex items-center py-16 md:py-24 scroll-mt-10"
     >
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16">
