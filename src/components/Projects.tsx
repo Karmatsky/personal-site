@@ -101,6 +101,7 @@ export default function Projects() {
                     <img
                       src={p.image}
                       alt=""
+                      loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
                       onError={(e) => {
                         const t = e.currentTarget as HTMLImageElement;
@@ -165,6 +166,7 @@ export default function Projects() {
                       <img
                         src={active.image}
                         alt=""
+                        loading="lazy"
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const t = e.currentTarget as HTMLImageElement;
