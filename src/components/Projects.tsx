@@ -94,7 +94,7 @@ export default function Projects() {
               viewport={{ once: true }}
             >
               <button
-                className="w-full text-left bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow focus:outline-none"
+                className="w-full text-left bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow focus:outline-none flex flex-col h-full"
                 onClick={() => setActiveId(p.id)}
                 aria-haspopup="dialog"
                 aria-controls={`project-${p.id}-dialog`}
@@ -113,13 +113,13 @@ export default function Projects() {
                     />
                   ) : null}
                 </div>
-                <div className="p-4">
+                <div className="p-4 flex flex-col flex-1">
                   <h3 className="text-base font-semibold text-slate-900 mb-1">
                     {p.title}
                   </h3>
-                  <p className="text-sm text-slate-600 line-clamp-2">
+                  {/* <p className="text-sm text-slate-600 line-clamp-1">
                     {p.description}
-                  </p>
+                  </p> */}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {p.tags.map((t) => (
                       <span
@@ -219,7 +219,7 @@ export default function Projects() {
                         </svg>
                       </button>
                     </div>
-                    <p className="mt-4 text-slate-700 leading-relaxed">
+                    <p className="mt-4 text-slate-700 leading-relaxed line-clamp-5">
                       {active.description}
                     </p>
                     {active.link ? (
