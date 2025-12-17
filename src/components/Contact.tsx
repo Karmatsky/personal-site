@@ -266,7 +266,7 @@ export default function Contact() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <form onSubmit={handleSubmit} className="space-y-3" noValidate>
               <div>
                 <label
                   htmlFor="name"
@@ -296,11 +296,9 @@ export default function Contact() {
                   }`}
                   placeholder={t("contact-placeholder-name")}
                 />
-                {errors.name && (
-                  <p id="name-error" className="text-xs text-red-600 mt-2">
-                    {errors.name}
-                  </p>
-                )}
+                <p id="name-error" className="text-xs text-red-600 mt-2 h-5">
+                  {errors.name || ""}
+                </p>
               </div>
 
               <div>
@@ -333,11 +331,9 @@ export default function Contact() {
                   }`}
                   placeholder={t("contact-placeholder-email")}
                 />
-                {errors.email && (
-                  <p id="email-error" className="text-xs text-red-600 mt-2">
-                    {errors.email}
-                  </p>
-                )}
+                <p id="email-error" className="text-xs text-red-600 mt-2 h-5">
+                  {errors.email || ""}
+                </p>
               </div>
 
               <div>
@@ -373,13 +369,9 @@ export default function Contact() {
                   placeholder={t("contact-placeholder-message")}
                 />
                 <div className="flex justify-between items-center mt-2">
-                  {errors.message ? (
-                    <p id="message-error" className="text-xs text-red-600">
-                      {errors.message}
-                    </p>
-                  ) : (
-                    <div />
-                  )}
+                  <p id="message-error" className="text-xs text-red-600 h-5">
+                    {errors.message || ""}
+                  </p>
                   <p className="text-xs text-slate-500">
                     {formData.message.length}/2000
                   </p>
