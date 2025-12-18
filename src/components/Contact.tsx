@@ -272,7 +272,7 @@ export default function Contact() {
                   htmlFor="name"
                   className="block text-sm font-medium text-slate-700 mb-2"
                 >
-                  {t("contact-name-label")}
+                  {t("contact.labels.name")}
                 </label>
                 <input
                   ref={nameRef}
@@ -294,7 +294,7 @@ export default function Contact() {
                       ? "bg-[#fee0e0] border-red-500 focus:border-red-600"
                       : ""
                   }`}
-                  placeholder={t("contact-placeholder-name")}
+                  placeholder={t("contact.placeholders.name")}
                 />
                 <p id="name-error" className="text-xs text-red-600 mt-2 h-5">
                   {errors.name || ""}
@@ -329,7 +329,7 @@ export default function Contact() {
                       ? "bg-[#fee0e0] border-red-500 focus:border-red-600"
                       : ""
                   }`}
-                  placeholder={t("contact-placeholder-email")}
+                  placeholder={t("contact.placeholders.email")}
                 />
                 <p id="email-error" className="text-xs text-red-600 mt-2 h-5">
                   {errors.email || ""}
@@ -366,7 +366,7 @@ export default function Contact() {
                       ? "bg-[#fee0e0] border-red-500 focus:border-red-600"
                       : ""
                   }`}
-                  placeholder={t("contact-placeholder-message")}
+                  placeholder={t("contact.placeholders.message")}
                 />
                 <div className="flex justify-between items-center mt-2">
                   <p id="message-error" className="text-xs text-red-600 h-5">
