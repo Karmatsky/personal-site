@@ -19,14 +19,14 @@ const Footer: React.FC = () => {
             >
               GitHub
             </a>
-            <a
+            {/* <a
               href="https://t.me/SKarmatsky"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-slate-600 hover:text-slate-900 transition-colors"
             >
               Telegram
-            </a>
+            </a> */}
           </nav>
         </div>
       </div>

@@ -113,7 +113,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                   <svg
                     width="20"
@@ -134,7 +134,7 @@ export default function Contact() {
                     SKarmatsky
                   </a>
                 </div>
-              </div>
+              </div> */}
 
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
@@ -174,7 +174,7 @@ export default function Contact() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center">
                   <svg
                     width="20"
@@ -196,7 +196,7 @@ export default function Contact() {
                     +7 (912) 212-11-76
                   </a>
                 </div>
-              </div>
+              </div> */}
             </div>
           </motion.div>
 
