@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { ExternalLink, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 type Project = {
@@ -11,8 +11,15 @@ type Project = {
   link?: string;
 };
 
+const focusableSelector =
+  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
 export default function Projects() {
   const { t } = useTranslation();
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
   const projects = useMemo<Project[]>(
     () => [
@@ -33,204 +40,208 @@ export default function Projects() {
         link: "https://eka-urfu-board.vercel.app/",
       },
     ],
-    [],
+    [t],
   );
 
-  const [activeId, setActiveId] = useState<string | null>(null);
   const active = useMemo(
-    () => projects.find((p) => p.id === activeId) || null,
+    () => projects.find((project) => project.id === activeId) || null,
     [activeId, projects],
   );
 
   useEffect(() => {
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setActiveId(null);
+    if (!active) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocused =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const triggerButton = triggerRefs.current[active.id];
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setActiveId(null);
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialogRef.current) return;
+
+      const focusableElements = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(focusableSelector),
+      ).filter((element) => element.offsetParent !== null);
+
+      if (!focusableElements.length) return;
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      }
     };
-    window.addEventListener("keydown", onEsc);
-    return () => window.removeEventListener("keydown", onEsc);
-  }, []);
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    requestAnimationFrame(() => closeButtonRef.current?.focus());
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+      (triggerButton || previouslyFocused)?.focus();
+    };
+  }, [active]);
+
+  const closeDialog = () => setActiveId(null);
 
   return (
-    <section
-      id="projects"
-      className="min-h-screen flex flex-col justify-center py-16 md:py-24 scroll-mt-10"
-    >
-      <div className="mx-auto max-w-6xl px-6">
-        <motion.div
-          className="mb-12"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          viewport={{ once: true }}
-        >
-          <p className="text-xs uppercase tracking-widest text-slate-500 mb-3">
-            {t("projects.section-label")}
-          </p>
-          <h2 className="text-3xl md:text-4xl font-semibold text-slate-900">
+    <section id="projects" className="section">
+      <div className="site-container">
+        <div className="mb-10 sm:mb-12" data-reveal>
+          <p className="section-eyebrow">{t("projects.section-label")}</p>
+          <h2 className="section-title section-title--compact">
             {t("projects.title")}
           </h2>
-        </motion.div>
+        </div>
 
-        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((p, index) => (
-            <motion.li
-              key={p.id}
-              className="group"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.5,
-                delay: index * 0.1,
-                ease: "easeOut",
-              }}
-              viewport={{ once: true }}
+        <ul className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:gap-6">
+          {projects.map((project, index) => (
+            <li
+              key={project.id}
+              data-reveal
+              style={{ "--reveal-delay": `${index * 70}ms` } as CSSProperties}
             >
               <button
-                className="w-full text-left bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow focus:outline-none flex flex-col h-full"
-                onClick={() => setActiveId(p.id)}
+                ref={(element) => {
+                  triggerRefs.current[project.id] = element;
+                }}
+                type="button"
+                className="project-card"
+                onClick={() => setActiveId(project.id)}
                 aria-haspopup="dialog"
-                aria-controls={`project-${p.id}-dialog`}
+                aria-controls={`project-${project.id}-dialog`}
+                aria-label={`${project.title}. ${project.description}`}
               >
-                <div className="aspect-video bg-slate-100 overflow-hidden">
-                  {p.image ? (
+                <div className="project-card__media aspect-video overflow-hidden bg-slate-100">
+                  {project.image ? (
                     <img
-                      src={p.image}
+                      src={project.image}
+                      width="3840"
+                      height="2160"
                       alt=""
-                      loading="eager"
-                      className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform"
-                      onError={(e) => {
-                        const t = e.currentTarget as HTMLImageElement;
-                        t.style.display = "none";
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.hidden = true;
                       }}
                     />
                   ) : null}
                 </div>
-                <div className="p-4 flex flex-col flex-1">
-                  <h3 className="text-base font-semibold text-slate-900 mb-1">
-                    {p.title}
+                <div className="flex flex-1 flex-col p-4 sm:p-5">
+                  <h3 className="text-lg font-semibold leading-snug text-slate-950">
+                    {project.title}
                   </h3>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {p.tags.map((t) => (
-                      <span
-                        key={t}
-                        className="text-[11px] font-medium text-[#2b2e32] bg-[#d9e5f8] px-2.5 py-1 rounded-full"
-                      >
-                        {t}
+                  <p className="project-card__description mt-3">
+                    {project.description}
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    {project.tags.map((tag) => (
+                      <span key={tag} className="tag">
+                        {tag}
                       </span>
                     ))}
                   </div>
                 </div>
               </button>
-            </motion.li>
+            </li>
           ))}
         </ul>
-
-        <AnimatePresence>
-          {active && (
-            <>
-              <motion.button
-                aria-label="Close project details"
-                className="fixed inset-0 z-50 bg-black/40 md:bg-black/50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                onClick={() => setActiveId(null)}
-              />
-              <motion.div
-                id={`project-${active.id}-dialog`}
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={`project-${active.id}-title`}
-                className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ type: "tween", duration: 0.22 }}
-                onClick={() => setActiveId(null)}
-              >
-                <div
-                  className="w-full md:max-w-2xl md:mx-auto bg-white rounded-t-3xl md:rounded-2xl shadow-lg overflow-hidden border border-slate-200"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {active.image ? (
-                    <div className="aspect-video bg-slate-100">
-                      <img
-                        src={active.image}
-                        alt=""
-                        loading="eager"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const t = e.currentTarget as HTMLImageElement;
-                          t.style.display = "none";
-                        }}
-                      />
-                    </div>
-                  ) : null}
-                  <div className="p-5 md:p-6">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3
-                          id={`project-${active.id}-title`}
-                          className="text-xl font-semibold text-slate-900"
-                        >
-                          {active.title}
-                        </h3>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {active.tags.map((technologyTitle) => (
-                            <span
-                              key={technologyTitle}
-                              className="text-[11px] font-medium text-[#2b2e32] bg-[#d9e5f8] px-2.5 py-1 rounded-full"
-                            >
-                              {technologyTitle}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setActiveId(null)}
-                        className="shrink-0 rounded-md p-2 hover:bg-slate-100 focus:outline-none"
-                        aria-label="Close"
-                      >
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M5 5l10 10M15 5L5 15"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                    <p className="mt-4 text-slate-700 leading-relaxed line-clamp-5">
-                      {active.description}
-                    </p>
-                    {active.link ? (
-                      <div className="mt-6">
-                        <a
-                          href={active.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="min-w-[120px] min-h-[40px] inline-flex items-center justify-center rounded-md bg-[#ffdd2d] text-black px-6 py-3 text-xs font-normal shadow-sm hover:bg-[#f2d22b] transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {t("projects.visit-button")}
-                        </a>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
       </div>
+
+      {active ? (
+        <>
+          <button
+            type="button"
+            aria-label="Close project details"
+            className="modal-backdrop"
+            onClick={closeDialog}
+          />
+          <div className="modal-layer" onClick={closeDialog}>
+            <div
+              ref={dialogRef}
+              id={`project-${active.id}-dialog`}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={`project-${active.id}-title`}
+              className="modal-panel"
+              onClick={(event) => event.stopPropagation()}
+            >
+              {active.image ? (
+                <div className="aspect-video bg-slate-100">
+                  <img
+                    src={active.image}
+                    width="3840"
+                    height="2160"
+                    alt=""
+                    loading="eager"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.hidden = true;
+                    }}
+                  />
+                </div>
+              ) : null}
+              <div className="p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h3
+                      id={`project-${active.id}-title`}
+                      className="text-xl font-semibold leading-tight text-slate-950"
+                    >
+                      {active.title}
+                    </h3>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {active.tags.map((tag) => (
+                        <span key={tag} className="tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <button
+                    ref={closeButtonRef}
+                    type="button"
+                    onClick={closeDialog}
+                    className="icon-button shrink-0"
+                    aria-label="Close"
+                  >
+                    <X aria-hidden className="size-5" />
+                  </button>
+                </div>
+                <p className="mt-5 text-base leading-7 text-slate-700">
+                  {active.description}
+                </p>
+                {active.link ? (
+                  <div className="mt-6">
+                    <a
+                      href={active.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-primary"
+                    >
+                      {t("projects.visit-button")}
+                      <ExternalLink aria-hidden className="size-4" />
+                    </a>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </>
+      ) : null}
     </section>
   );
 }

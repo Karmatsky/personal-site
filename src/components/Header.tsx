@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { Variants } from "framer-motion";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface NavItem {
@@ -8,175 +7,146 @@ interface NavItem {
   href: string;
 }
 
-const Header: React.FC = () => {
+export default function Header() {
   const { t } = useTranslation();
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [activeSection, setActiveSection] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("about");
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const firstMobileLinkRef = useRef<HTMLAnchorElement>(null);
 
-  const navItems: NavItem[] = [
-    { name: t("header.about"), href: "#about" },
-    { name: t("header.projects"), href: "#projects" },
-    { name: t("header.contact"), href: "#contact" },
-  ];
+  const navItems = useMemo<NavItem[]>(
+    () => [
+      { name: t("header.about"), href: "#about" },
+      { name: t("header.projects"), href: "#projects" },
+      { name: t("header.contact"), href: "#contact" },
+    ],
+    [t],
+  );
 
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = document.querySelectorAll("section[id]");
-      let current = "";
+    const sections = navItems
+      .map((item) => document.querySelector<HTMLElement>(item.href))
+      .filter((section): section is HTMLElement => section !== null);
 
-      sections.forEach((section) => {
-        const sectionTop = (section as HTMLElement).offsetTop;
-        const sectionHeight = (section as HTMLElement).clientHeight;
-        if (window.scrollY >= sectionTop - sectionHeight / 3) {
-          current = section.getAttribute("id") || "";
+    if (!sections.length || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        if (visibleEntry?.target.id) {
+          setActiveSection(visibleEntry.target.id);
         }
-      });
+      },
+      {
+        rootMargin: "-34% 0px -56% 0px",
+        threshold: [0.01, 0.2, 0.45],
+      },
+    );
 
-      setActiveSection(current);
+    sections.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, [navItems]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const menuButton = menuButtonRef.current;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    requestAnimationFrame(() => firstMobileLinkRef.current?.focus());
 
-  const menuVariants: Variants = {
-    closed: {
-      opacity: 0,
-      y: "-100%",
-      transition: {
-        duration: 0.4,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-    open: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        ease: [0.16, 1, 0.3, 1],
-      },
-    },
-  };
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+      menuButton?.focus();
+    };
+  }, [isOpen]);
 
-  const listVariants: Variants = {
-    closed: { opacity: 0, y: -20 },
-    open: (i: number) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        delay: 0.05 + i * 0.1,
-        duration: 0.4,
-        ease: "easeOut",
-      },
-    }),
-  };
+  const closeMenu = () => setIsOpen(false);
 
   return (
-    <header className="fixed top-4 left-0 right-0 z-50 w-full max-w-6xl mx-auto px-6">
-      <div className="bg-white border-2 border-slate-200 shadow-2xs rounded-2xl relative z-50">
-        <div className="px-6 py-3 flex justify-between items-center">
-          <motion.a
-            href="#"
-            className="text-xl font-bold text-gray-900 tracking-tight relative z-10"
-            whileHover={{ opacity: 0.7 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setActiveSection("")}
+    <header className="fixed inset-x-0 top-3 z-50 px-3 sm:top-4 sm:px-6">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="nav-shell">
+          <a
+            href="#about"
+            className="rounded-md text-base font-bold text-slate-950 sm:text-lg"
+            onClick={closeMenu}
           >
             Savely Karmatsky
-          </motion.a>
+          </a>
 
-          <nav className="hidden md:flex space-x-1">
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
             {navItems.map((item) => {
-              const isActive = activeSection === item.href.substring(1);
+              const isActive = activeSection === item.href.slice(1);
 
               return (
                 <a
-                  key={item.name}
+                  key={item.href}
                   href={item.href}
-                  className={`relative px-4 py-2 text-sm font-medium transition-colors duration-300 ${
-                    isActive
-                      ? "text-gray-900"
-                      : "text-gray-500 hover:text-gray-900"
-                  }`}
-                  onClick={() => setIsOpen(false)}
+                  className="nav-link"
+                  data-active={isActive}
+                  aria-current={isActive ? "page" : undefined}
                 >
                   {item.name}
-
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeSection"
-                      className="absolute inset-0 bg-gray-100 rounded-lg -z-10"
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  )}
                 </a>
               );
             })}
           </nav>
 
-          <motion.button
-            className="md:hidden flex flex-col justify-center items-center w-10 h-10 space-y-1.5 z-50"
-            onClick={() => setIsOpen(!isOpen)}
-            whileTap={{ scale: 0.9 }}
-            aria-label="Toggle menu"
+          <button
+            ref={menuButtonRef}
+            type="button"
+            className="icon-button md:hidden"
+            onClick={() => setIsOpen((open) => !open)}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-expanded={isOpen}
+            aria-controls="mobile-menu"
           >
-            <motion.span
-              className="w-5 h-0.5 bg-gray-800 block rounded-full origin-center"
-              animate={{ rotate: isOpen ? 45 : 0, y: isOpen ? 8 : 0 }}
-              transition={{ duration: 0.3 }}
-            />
-            <motion.span
-              className="w-5 h-0.5 bg-gray-800 block rounded-full"
-              animate={{ opacity: isOpen ? 0 : 1 }}
-              transition={{ duration: 0.2 }}
-            />
-            <motion.span
-              className="w-5 h-0.5 bg-gray-800 block rounded-full origin-center"
-              animate={{ rotate: isOpen ? -45 : 0, y: isOpen ? -8 : 0 }}
-              transition={{ duration: 0.3 }}
-            />
-          </motion.button>
+            {isOpen ? <X aria-hidden className="size-5" /> : <Menu aria-hidden className="size-5" />}
+          </button>
         </div>
       </div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.nav
-            className="fixed inset-0 bg-white/95 backdrop-blur-lg z-40 flex flex-col justify-center items-center"
-            initial="closed"
-            animate="open"
-            exit="closed"
-            variants={menuVariants}
-          >
-            <div className="space-y-6 text-center">
-              {navItems.map((item, i) => (
-                <motion.a
-                  key={item.name}
-                  custom={i}
-                  variants={listVariants}
-                  href={item.href}
-                  className={`block text-4xl font-semibold tracking-tighter transition-colors ${
-                    activeSection === item.href.substring(1)
-                      ? "text-[#126df7]"
-                      : "text-gray-900"
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {item.name}
-                </motion.a>
-              ))}
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      <nav
+        id="mobile-menu"
+        className="mobile-menu"
+        data-open={isOpen}
+        aria-hidden={!isOpen}
+        aria-label="Mobile primary"
+      >
+        <div className="w-full max-w-sm space-y-3">
+          {navItems.map((item, index) => {
+            const isActive = activeSection === item.href.slice(1);
+
+            return (
+              <a
+                key={item.href}
+                ref={index === 0 ? firstMobileLinkRef : undefined}
+                href={item.href}
+                className="mobile-menu__link"
+                data-active={isActive}
+                aria-current={isActive ? "page" : undefined}
+                tabIndex={isOpen ? 0 : -1}
+                onClick={closeMenu}
+              >
+                {item.name}
+              </a>
+            );
+          })}
+        </div>
+      </nav>
     </header>
   );
-};
-
-export default Header;
+}
