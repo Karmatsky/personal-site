@@ -67,6 +67,10 @@
       "title": "Failed to send message",
       "description": "Please try again or contact me directly via email."
     },
+    "rate-limited": {
+      "title": "Too many requests",
+      "description": "Please wait a bit and try again later."
+    },
     "network": {
       "title": "Network error",
       "description": "Check your connection and try again."

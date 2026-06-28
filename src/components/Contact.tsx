@@ -7,14 +7,11 @@ type FormData = {
   name: string;
   email: string;
   message: string;
+  company: string;
 };
 
 export default function Contact() {
   const { t } = useTranslation();
-  const formspreeId = import.meta.env.VITE_FORMSPREE_ID;
-  const formspreeEndpoint = formspreeId
-    ? `https://formspree.io/f/${formspreeId}`
-    : "";
 
   const {
     register,
@@ -23,22 +20,15 @@ export default function Contact() {
     reset,
     watch,
   } = useForm<FormData>({
-    defaultValues: { name: "", email: "", message: "" },
+    defaultValues: { name: "", email: "", message: "", company: "" },
     mode: "onBlur",
   });
 
   const messageLength = watch("message", "").length;
 
   const onSubmit = async (data: FormData) => {
-    if (!formspreeEndpoint) {
-      toast.error(t("errors.submit-failed.title"), {
-        description: t("errors.submit-failed.description"),
-      });
-      return;
-    }
-
     try {
-      const response = await fetch(formspreeEndpoint, {
+      const response = await fetch("/api/contact", {
         method: "POST",
         headers: {
           Accept: "application/json",
@@ -52,6 +42,13 @@ export default function Contact() {
           description: t("success.description"),
         });
         reset();
+        return;
+      }
+
+      if (response.status === 429) {
+        toast.error(t("errors.rate-limited.title"), {
+          description: t("errors.rate-limited.description"),
+        });
         return;
       }
 
@@ -117,6 +114,17 @@ export default function Contact() {
             noValidate
             data-reveal
           >
+            <div className="honeypot-field" aria-hidden="true">
+              <label htmlFor="company">Company</label>
+              <input
+                id="company"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                {...register("company")}
+              />
+            </div>
+
             <div>
               <label
                 htmlFor="name"

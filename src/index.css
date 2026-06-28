@@ -393,6 +393,16 @@ a {
     box-shadow: var(--shadow-card);
   }
 
+  .honeypot-field {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .form-control {
     @apply w-full rounded-lg border px-4 py-3 text-base text-slate-900 outline-none;
     min-height: 3rem;

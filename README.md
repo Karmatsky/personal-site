@@ -85,6 +85,45 @@ Production files go to `dist/` directory.
 - `npm run lint` - Check code quality
 - `npm run preview` - Preview production build
 
+### Contact Form Anti-Spam
+
+The contact form submits to the server-side Vercel function at `/api/contact`.
+The browser no longer sends messages directly to Formspree. The API validates and
+sanitizes input, checks origin/content type, blocks honeypot submissions, rate
+limits by IP and email, detects duplicate messages, logs only anonymized hashes,
+and forwards only clean messages to Formspree.
+
+Required environment variables:
+
+```bash
+FORMSPREE_ID=your_formspree_form_id
+SITE_ORIGIN=https://karmatsky.vercel.app
+UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_upstash_rest_token
+CONTACT_HASH_SALT=replace_with_a_long_random_secret
+```
+
+Optional:
+
+```bash
+CONTACT_ALLOWED_ORIGINS=https://preview-1.example.com,https://preview-2.example.com
+```
+
+For production on Vercel, configure all required variables in Project Settings.
+Upstash Redis is required in production so rate limits and duplicate checks work
+across serverless instances. Local development can use the in-memory fallback for
+the API, but end-to-end contact form testing should be done with `vercel dev` or
+on a Vercel preview because plain `vite dev` does not run `/api/contact`.
+
+Manual verification checklist:
+
+- Normal message returns success and is forwarded.
+- Filled `company` honeypot returns generic success and is not forwarded.
+- Invalid email or empty required fields return a generic error.
+- More than 3 submissions per 10 minutes from one IP returns 429.
+- More than 5 submissions per hour from one email returns 429.
+- Repeated identical message within 10 minutes returns generic success and is not forwarded.
+
 ### Language Support
 
 The site automatically detects the user's browser language and displays content in English or Russian. Users can manually switch between languages using the language selector in the header.
