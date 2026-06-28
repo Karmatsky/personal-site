@@ -94,27 +94,51 @@ function genericError(res: ResponseLike, status = 400) {
   return res.status(status).json({ ok: false, message: "Something went wrong. Please try again." });
 }
 
+function normalizeOrigin(value?: string) {
+  if (!value) return "";
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return value.replace(/\/+$/, "");
+  }
+}
+
+function getRequestOrigin(req: RequestLike) {
+  const host = getHeader(req, "x-forwarded-host") || getHeader(req, "host");
+  if (!host) return "";
+
+  const protocol =
+    getHeader(req, "x-forwarded-proto") ||
+    (host.includes("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
+
+  return normalizeOrigin(`${protocol}://${host}`);
+}
+
 function isAllowedOrigin(req: RequestLike) {
   const origin = getHeader(req, "origin");
   const referer = getHeader(req, "referer");
-  let source = origin || "";
+  let source = normalizeOrigin(origin);
 
   if (!source && referer) {
     try {
-      source = new URL(referer).origin;
+      source = normalizeOrigin(new URL(referer).origin);
     } catch {
       source = "";
     }
   }
+
+  const requestOrigin = getRequestOrigin(req);
   const allowedOrigins = new Set(
     [
       process.env.SITE_ORIGIN,
       ...(process.env.CONTACT_ALLOWED_ORIGINS || "").split(","),
       process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+      requestOrigin,
       "http://localhost:5173",
       "http://127.0.0.1:5173",
     ]
-      .map((item) => (item || "").trim())
+      .map((item) => normalizeOrigin((item || "").trim()))
       .filter(Boolean),
   );
 
