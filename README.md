@@ -114,6 +114,10 @@ Upstash Redis is required in production so rate limits and duplicate checks work
 across serverless instances. Local development can use the in-memory fallback for
 the API, but end-to-end contact form testing should be done with `vercel dev` or
 on a Vercel preview because plain `vite dev` does not run `/api/contact`.
+`FORMSPREE_ID` may be either the short form id or the full
+`https://formspree.io/f/...` endpoint. If `/api/contact` returns `503`, check
+Vercel Function logs for `contact_configuration_error`; it means one of the
+required environment variables is missing in that deployment environment.
 
 Manual verification checklist:
 

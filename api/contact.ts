@@ -239,6 +239,33 @@ function hasUpstashConfig() {
   return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 }
 
+function getFormspreeEndpoint() {
+  const rawValue = process.env.FORMSPREE_ID || process.env.CONTACT_FORMSPREE_ID || "";
+  const value = rawValue.trim();
+
+  if (!value) return "";
+
+  if (value.startsWith("https://formspree.io/f/")) {
+    return value;
+  }
+
+  return `https://formspree.io/f/${value}`;
+}
+
+function getConfigurationIssues() {
+  const issues: string[] = [];
+
+  if (!getFormspreeEndpoint()) {
+    issues.push("missing_formspree_id");
+  }
+
+  if ((process.env.NODE_ENV === "production" || process.env.VERCEL === "1") && !hasUpstashConfig()) {
+    issues.push("missing_upstash_config");
+  }
+
+  return issues;
+}
+
 async function upstashCommand<T = unknown>(command: unknown[]) {
   const response = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}`, {
     method: "POST",
@@ -359,13 +386,13 @@ function duplicateKey(data: ContactData, ipHash: string) {
 }
 
 async function forwardToFormspree(data: ContactData) {
-  const formspreeId = process.env.FORMSPREE_ID || process.env.CONTACT_FORMSPREE_ID;
+  const formspreeEndpoint = getFormspreeEndpoint();
 
-  if (!formspreeId) {
+  if (!formspreeEndpoint) {
     throw new Error("missing_formspree_id");
   }
 
-  const response = await fetch(`https://formspree.io/f/${formspreeId}`, {
+  const response = await fetch(formspreeEndpoint, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -399,6 +426,19 @@ export default async function handler(req: RequestLike, res: ResponseLike) {
   if (!isAllowedOrigin(req)) {
     logBlocked("invalid_origin", req);
     return genericError(res, 403);
+  }
+
+  const configurationIssues = getConfigurationIssues();
+  if (configurationIssues.length > 0) {
+    console.error(
+      JSON.stringify({
+        event: "contact_configuration_error",
+        at: new Date().toISOString(),
+        issues: configurationIssues,
+      }),
+    );
+
+    return genericError(res, 503);
   }
 
   let payload: ContactPayload;
