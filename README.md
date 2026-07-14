@@ -85,6 +85,30 @@ Production files go to `dist/` directory.
 - `npm run lint` - Check code quality
 - `npm run preview` - Preview production build
 
+### Contact Form
+
+The contact form sends through Formspree when a Formspree endpoint is configured.
+Create a local `.env` file or set these variables in your hosting provider:
+
+```bash
+VITE_FORMSPREE_ENDPOINT=https://formspree.io/f/your_form_id
+```
+
+Alternatively, set only the short id:
+
+```bash
+VITE_FORMSPREE_ID=your_form_id
+```
+
+If Formspree is not configured or is temporarily unavailable, the form opens a
+prefilled email draft to `VITE_CONTACT_EMAIL`:
+
+```bash
+VITE_CONTACT_EMAIL=s.karmatsky@gmail.com
+```
+
+After changing Vite env variables, restart the dev server or redeploy the site.
+
 ### Language Support
 
 The site automatically detects the user's browser language and displays content in English or Russian. Users can manually switch between languages using the language selector in the header.

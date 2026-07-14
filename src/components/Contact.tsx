@@ -7,14 +7,51 @@ type FormData = {
   name: string;
   email: string;
   message: string;
+  _gotcha: string;
 };
+
+const defaultContactEmail = "s.karmatsky@gmail.com";
+
+function getFormspreeEndpoint() {
+  const endpoint = import.meta.env.VITE_FORMSPREE_ENDPOINT?.trim();
+  const formId = import.meta.env.VITE_FORMSPREE_ID?.trim();
+
+  if (endpoint) {
+    return endpoint;
+  }
+
+  if (!formId) {
+    return "";
+  }
+
+  if (formId.startsWith("https://formspree.io/f/")) {
+    return formId;
+  }
+
+  return `https://formspree.io/f/${formId}`;
+}
+
+function getContactEmail() {
+  return import.meta.env.VITE_CONTACT_EMAIL?.trim() || defaultContactEmail;
+}
+
+function openMailFallback(data: FormData) {
+  const subject = `Portfolio contact from ${data.name}`;
+  const body = [
+    `Name: ${data.name}`,
+    `Email: ${data.email}`,
+    "",
+    data.message,
+  ].join("\n");
+
+  window.location.href = `mailto:${encodeURIComponent(
+    getContactEmail(),
+  )}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
 
 export default function Contact() {
   const { t } = useTranslation();
-  const formspreeId = import.meta.env.VITE_FORMSPREE_ID;
-  const formspreeEndpoint = formspreeId
-    ? `https://formspree.io/f/${formspreeId}`
-    : "";
+  const formspreeEndpoint = getFormspreeEndpoint();
 
   const {
     register,
@@ -23,17 +60,24 @@ export default function Contact() {
     reset,
     watch,
   } = useForm<FormData>({
-    defaultValues: { name: "", email: "", message: "" },
+    defaultValues: { name: "", email: "", message: "", _gotcha: "" },
     mode: "onBlur",
   });
 
   const messageLength = watch("message", "").length;
 
   const onSubmit = async (data: FormData) => {
+    if (data._gotcha.trim()) {
+      reset();
+      return;
+    }
+
     if (!formspreeEndpoint) {
-      toast.error(t("errors.submit-failed.title"), {
-        description: t("errors.submit-failed.description"),
+      openMailFallback(data);
+      toast.success(t("success.fallback-title"), {
+        description: t("success.fallback-description"),
       });
+      reset();
       return;
     }
 
@@ -44,7 +88,14 @@ export default function Contact() {
           Accept: "application/json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          name: data.name.trim(),
+          email: data.email.trim(),
+          message: data.message.trim(),
+          _replyto: data.email.trim(),
+          _subject: `Portfolio contact from ${data.name.trim()}`,
+          _gotcha: data._gotcha,
+        }),
       });
 
       if (response.ok) {
@@ -55,10 +106,12 @@ export default function Contact() {
         return;
       }
 
+      openMailFallback(data);
       toast.error(t("errors.submit-failed.title"), {
         description: t("errors.submit-failed.description"),
       });
     } catch {
+      openMailFallback(data);
       toast.error(t("errors.network.title"), {
         description: t("errors.network.description"),
       });
@@ -117,6 +170,17 @@ export default function Contact() {
             noValidate
             data-reveal
           >
+            <div className="honeypot-field" aria-hidden="true">
+              <label htmlFor="contact-gotcha">Leave this field empty</label>
+              <input
+                id="contact-gotcha"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                {...register("_gotcha")}
+              />
+            </div>
+
             <div>
               <label
                 htmlFor="name"

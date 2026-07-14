@@ -60,7 +60,9 @@
   },
   "success": {
     "title": "Message sent — thank you!",
-    "description": "I’ll get back to you shortly."
+    "description": "I’ll get back to you shortly.",
+    "fallback-title": "Email draft opened",
+    "fallback-description": "Your email app opened with the message details."
   },
   "errors": {
     "submit-failed": {
